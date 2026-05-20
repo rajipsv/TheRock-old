@@ -15,7 +15,9 @@ python build_tools/install_rocm_from_artifacts.py
     [--output-dir OUTPUT_DIR]
     (--run-id RUN_ID | --release RELEASE | --input-dir INPUT_DIR)
     [--run-github-repo RUN_GITHUB_REPO]
+    [--aqlprofile | --no-aqlprofile]
     [--blas | --no-blas]
+    [--debug-tools | --no-debug-tools]
     [--fft | --no-fft]
     [--hipdnn | --no-hipdnn]
     [--miopen | --no-miopen]
@@ -26,6 +28,7 @@ python build_tools/install_rocm_from_artifacts.py
     [--rocprofiler-compute | --no-rocprofiler-compute]
     [--rocprofiler-systems | --no-rocprofiler-systems]
     [--rocwmma | --no-rocwmma]
+    [--libhipcxx | --no-libhipcxx]
     [--tests | --no-tests]
     [--base-only]
 
@@ -167,6 +170,7 @@ def retrieve_artifacts_by_run_id(args):
 
     # These artifacts are the "base" requirements for running tests.
     base_artifact_patterns = [
+        "core-hipinfo_run",
         "core-runtime_run",
         "core-runtime_lib",
         "sysdeps_lib",
@@ -186,24 +190,35 @@ def retrieve_artifacts_by_run_id(args):
         argv.extend(base_artifact_patterns)
     elif any(
         [
+            args.aqlprofile,
             args.blas,
+            args.debug_tools,
             args.fft,
             args.hipdnn,
             args.miopen,
             args.miopen_plugin,
+            args.fusilli_plugin,
             args.prim,
             args.rand,
             args.rccl,
             args.rocprofiler_compute,
             args.rocprofiler_systems,
             args.rocwmma,
+            args.libhipcxx,
         ]
     ):
         argv.extend(base_artifact_patterns)
 
         extra_artifacts = []
+        if args.aqlprofile:
+            extra_artifacts.append("aqlprofile-tests")
         if args.blas:
             extra_artifacts.append("blas")
+        if args.debug_tools:
+            extra_artifacts.append("amd-dbgapi")
+            extra_artifacts.append("rocgdb")
+            extra_artifacts.append("rocr-debug-agent")
+            extra_artifacts.append("rocr-debug-agent-tests")
         if args.fft:
             extra_artifacts.append("fft")
             extra_artifacts.append("fftw3")
@@ -217,6 +232,8 @@ def retrieve_artifacts_by_run_id(args):
             argv.extend("rand_dev")
         if args.miopen_plugin:
             extra_artifacts.append("miopen-plugin")
+        if args.fusilli_plugin:
+            extra_artifacts.append("fusilli-plugin")
         if args.prim:
             extra_artifacts.append("prim")
         if args.rand:
@@ -229,6 +246,11 @@ def retrieve_artifacts_by_run_id(args):
             extra_artifacts.append("rocprofiler-systems")
         if args.rocwmma:
             extra_artifacts.append("rocwmma")
+        if args.libhipcxx:
+            extra_artifacts.append("libhipcxx")
+            argv.append("amd-llvm_dev")
+            argv.append("amd-llvm_lib")
+            argv.append("base_dev_generic")
 
         extra_artifact_patterns = [f"{a}_lib" for a in extra_artifacts]
         if args.tests:
@@ -355,9 +377,23 @@ def main(argv):
 
     artifacts_group = parser.add_argument_group("artifacts_group")
     artifacts_group.add_argument(
+        "--aqlprofile",
+        default=False,
+        help="Include 'aqlprofile' artifacts",
+        action=argparse.BooleanOptionalAction,
+    )
+
+    artifacts_group.add_argument(
         "--blas",
         default=False,
         help="Include 'blas' artifacts",
+        action=argparse.BooleanOptionalAction,
+    )
+
+    artifacts_group.add_argument(
+        "--debug-tools",
+        default=False,
+        help="Include ROCm debugging tools (amd-dbgapi, rocgdb and rocr_debug_agent) artifacts",
         action=argparse.BooleanOptionalAction,
     )
 
@@ -386,6 +422,13 @@ def main(argv):
         "--miopen-plugin",
         default=False,
         help="Include 'miopen-plugin' artifacts",
+        action=argparse.BooleanOptionalAction,
+    )
+
+    artifacts_group.add_argument(
+        "--fusilli-plugin",
+        default=False,
+        help="Include 'fusilli-plugin' artifacts",
         action=argparse.BooleanOptionalAction,
     )
 
@@ -428,6 +471,13 @@ def main(argv):
         "--rocwmma",
         default=False,
         help="Include 'rocwmma' artifacts",
+        action=argparse.BooleanOptionalAction,
+    )
+
+    artifacts_group.add_argument(
+        "--libhipcxx",
+        default=False,
+        help="Include 'libhipcxx' artifacts",
         action=argparse.BooleanOptionalAction,
     )
 

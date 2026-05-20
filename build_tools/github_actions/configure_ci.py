@@ -18,6 +18,8 @@
   * WINDOWS_USE_PREBUILT_ARTIFACTS (optional): If enabled, CI will only run Windows tests
   * BRANCH_NAME (optional): The branch name
   * BUILD_VARIANT (optional): The build variant to run (ex: release, asan)
+  * ROCM_THEROCK_TEST_RUNNERS (optional): Test runner JSON object, coming from ROCm organization
+  * LOAD_TEST_RUNNERS_FROM_VAR (optional): boolean env variable that loads in ROCm org data if enabled
 
   Environment variables (for pull requests):
   * PR_LABELS (optional) : JSON list of PR label names.
@@ -54,9 +56,6 @@ from typing import Iterable, List, Optional
 import string
 from amdgpu_family_matrix import (
     all_build_variants,
-    amdgpu_family_info_matrix_presubmit,
-    amdgpu_family_info_matrix_postsubmit,
-    amdgpu_family_info_matrix_nightly,
     get_all_families_for_trigger_types,
 )
 from fetch_test_configurations import test_matrix
@@ -361,6 +360,21 @@ def generate_multi_arch_matrix(
     return matrix_output
 
 
+def determine_long_lived_branch(branch_name: str) -> bool:
+    # For long-lived branches (main, releases) we want to run both presubmit and postsubmit jobs on push,
+    # instead of just presubmit jobs (as for other branches)
+    is_long_lived_branch = False
+    # Let's differentiate between full/complete matches and prefix matches for long-lived branches
+    long_lived_full_match = ["main"]
+    long_lived_prefix_match = ["release/therock-"]
+    if branch_name in long_lived_full_match or any(
+        branch_name.startswith(prefix) for prefix in long_lived_prefix_match
+    ):
+        is_long_lived_branch = True
+
+    return is_long_lived_branch
+
+
 def matrix_generator(
     is_pull_request=False,
     is_workflow_dispatch=False,
@@ -381,15 +395,22 @@ def matrix_generator(
     # Select only test names based on label inputs, if applied. If no test labels apply, use default logic.
     selected_test_names = []
 
+    branch_name = base_args.get("branch_name", "")
+    # For long-lived branches (main, releases) we want to run both presubmit and postsubmit jobs on push,
+    # instead of just presubmit jobs (as for other branches)
+    is_long_lived_branch = determine_long_lived_branch(branch_name)
+
+    print(f"* {branch_name} is considered a long-lived branch: {is_long_lived_branch}")
+
     # Determine which trigger types are active for proper matrix lookup
     active_trigger_types = []
     if is_pull_request:
         active_trigger_types.append("presubmit")
     if is_push:
-        if base_args.get("branch_name") == "main":
+        if is_long_lived_branch:
             active_trigger_types.extend(["presubmit", "postsubmit"])
         else:
-            # Non-main branch pushes (e.g., multi_arch/bringup1) use presubmit defaults
+            # Non-long-lived branch pushes (e.g., multi_arch/bringup1) use presubmit defaults
             active_trigger_types.append("presubmit")
     if is_schedule:
         active_trigger_types.extend(["presubmit", "postsubmit", "nightly"])
@@ -412,7 +433,7 @@ def matrix_generator(
             f"Unreachable code: no trigger types determined. "
             f"is_pull_request={is_pull_request}, is_workflow_dispatch={is_workflow_dispatch}, "
             f"is_push={is_push}, is_schedule={is_schedule}, "
-            f"branch_name={base_args.get('branch_name')}"
+            f"branch_name={branch_name}"
         )
 
     if is_workflow_dispatch:
@@ -453,7 +474,7 @@ def matrix_generator(
         print(f"[PULL_REQUEST] Generating build matrix with {str(base_args)}")
 
         # Add presubmit targets.
-        for target in amdgpu_family_info_matrix_presubmit:
+        for target in get_all_families_for_trigger_types(["presubmit"]):
             selected_target_names.append(target)
 
         # Extend with any additional targets that PR labels opt-in to running.
@@ -463,26 +484,42 @@ def matrix_generator(
         requested_test_names = []
         pr_labels = get_pr_labels(base_args)
         for label in pr_labels:
+            # if a GPU target label was added, we add the GPU target to the build and test matrix
             if "gfx" in label:
                 target = label.split("-")[0]
                 requested_target_names.append(target)
+            # If a test label was added, we run the full test for the specified test
             if "test:" in label:
                 _, test_name = label.split(":")
                 requested_test_names.append(test_name)
+            # If the "skip-ci" label was added, we skip all builds and tests
+            # We don't want to check for anymore labels
+            if "skip-ci" == label:
+                selected_target_names = []
+                selected_test_names = []
+                break
+            if "run-all-archs-ci" == label:
+                selected_target_names = [
+                    target
+                    for target in get_all_families_for_trigger_types(
+                        ["presubmit", "postsubmit", "nightly"]
+                    )
+                ]
+
         selected_target_names.extend(
             filter_known_names(requested_target_names, "target", lookup_matrix)
         )
         selected_test_names.extend(filter_known_names(requested_test_names, "test"))
 
     if is_push:
-        branch_name = base_args.get("branch_name")
-        if branch_name == "main":
-            print(f"[PUSH - MAIN] Generating build matrix with {str(base_args)}")
+        if is_long_lived_branch:
+            print(
+                f"[PUSH - {branch_name.upper()}] Generating build matrix with {str(base_args)}"
+            )
 
             # Add presubmit and postsubmit targets.
-            for target in (
-                amdgpu_family_info_matrix_presubmit
-                | amdgpu_family_info_matrix_postsubmit
+            for target in get_all_families_for_trigger_types(
+                ["presubmit", "postsubmit"]
             ):
                 selected_target_names.append(target)
         else:
@@ -490,18 +527,16 @@ def matrix_generator(
                 f"[PUSH - {branch_name}] Generating build matrix with {str(base_args)}"
             )
 
-            # Non-main branch pushes use presubmit targets
-            for target in amdgpu_family_info_matrix_presubmit:
+            # Non-long-lived branch pushes use presubmit targets
+            for target in get_all_families_for_trigger_types(["presubmit"]):
                 selected_target_names.append(target)
 
     if is_schedule:
         print(f"[SCHEDULE] Generating build matrix with {str(base_args)}")
 
         # For nightly runs, we run all builds and full tests
-        amdgpu_family_info_matrix_all = (
-            amdgpu_family_info_matrix_presubmit
-            | amdgpu_family_info_matrix_postsubmit
-            | amdgpu_family_info_matrix_nightly
+        amdgpu_family_info_matrix_all = get_all_families_for_trigger_types(
+            ["presubmit", "postsubmit", "nightly"]
         )
         for key in amdgpu_family_info_matrix_all:
             selected_target_names.append(key)
@@ -709,9 +744,14 @@ if __name__ == "__main__":
         "INPUT_WINDOWS_AMDGPU_FAMILIES", ""
     )
 
-    # For now, add default run for gfx94X-linux
     base_args["pr_labels"] = os.environ.get("PR_LABELS", '{"labels": []}')
-    base_args["branch_name"] = os.environ.get("GITHUB_REF").split("/")[-1]
+    base_args["branch_name"] = os.environ.get("GITHUB_REF_NAME", "")
+    if base_args["branch_name"] == "":
+        print(
+            "[ERROR] GITHUB_REF_NAME is not set! No branch name detected. Exiting.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     base_args["github_event_name"] = os.environ.get("GITHUB_EVENT_NAME", "")
     base_args["base_ref"] = os.environ.get("BASE_REF", "HEAD^1")
     base_args["linux_use_prebuilt_artifacts"] = (

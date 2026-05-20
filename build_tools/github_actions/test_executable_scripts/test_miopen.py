@@ -27,125 +27,46 @@ logging.basicConfig(level=logging.INFO)
 
 ###########################################
 
-positive_filter = []
 negative_filter = []
-
-# Fusion #
-positive_filter.append("*Fusion*")
-
-# Batch Normalization #
-positive_filter.append("*/GPU_BNBWD*_*")
-positive_filter.append("*/GPU_BNOCLBWD*_*")
-positive_filter.append("*/GPU_BNFWD*_*")
-positive_filter.append("*/GPU_BNOCLFWD*_*")
-positive_filter.append("*/GPU_BNInfer*_*")
-positive_filter.append("*/GPU_BNActivInfer_*")
-positive_filter.append("*/GPU_BNOCLInfer*_*")
-positive_filter.append("*/GPU_bn_infer*_*")
-
-# CPU tests
-positive_filter.append("CPU_*")  # tests without a suite
-positive_filter.append("*/CPU_*")  # tests with a suite
-
-# Different
-positive_filter.append("*/GPU_Cat_*")
-positive_filter.append("*/GPU_ConvBiasActiv*")
-
-# Convolutions
-positive_filter.append("*/GPU_Conv*")
-positive_filter.append("*/GPU_conv*")
-
-# Solvers
-positive_filter.append("*/GPU_UnitTestConv*")
-
-# Misc
-
-positive_filter.append("*/GPU_GetitemBwd*")
-positive_filter.append("*/GPU_GLU_*")
-
-positive_filter.append("*/GPU_GroupConv*")
-positive_filter.append("*/GPU_GroupNorm_*")
-positive_filter.append("*/GPU_GRUExtra_*")
-positive_filter.append("*/GPU_TestActivation*")
-positive_filter.append("*/GPU_HipBLASLtGEMMTest*")
-positive_filter.append("*/GPU_KernelTuningNetTestConv*")
-positive_filter.append("*/GPU_Kthvalue_*")
-positive_filter.append("*/GPU_LayerNormTest*")
-positive_filter.append("*/GPU_LayoutTransposeTest_*")
-positive_filter.append("*/GPU_Lrn*")
-positive_filter.append("*/GPU_lstm_extra*")
-
-positive_filter.append("*/GPU_MultiMarginLoss_*")
-positive_filter.append("*/GPU_ConvNonpack*")
-positive_filter.append("*/GPU_PerfConfig_HipImplicitGemm*")
-positive_filter.append("*/GPU_AsymPooling2d_*")
-positive_filter.append("*/GPU_WidePooling2d_*")
-positive_filter.append("*/GPU_PReLU_*")
-positive_filter.append("*/GPU_Reduce*")
-positive_filter.append("*/GPU_reduce_custom_*")
-positive_filter.append("*/GPU_regression_issue_*")
-positive_filter.append("*/GPU_RNNExtra_*")
-positive_filter.append("*/GPU_RoPE*")
-positive_filter.append("*/GPU_SoftMarginLoss*")
-positive_filter.append("*/GPU_T5LayerNormTest_*")
-positive_filter.append("*/GPU_Op4dTensorGenericTest_*")
-positive_filter.append("*/GPU_TernaryTensorOps_*")
-positive_filter.append("*/GPU_unaryTensorOps_*")
-positive_filter.append("*/GPU_Transformers*")
-positive_filter.append("*/GPU_TunaNetTest_*")
-positive_filter.append("*/GPU_UnitTestActivationDescriptor_*")
-positive_filter.append("*/GPU_FinInterfaceTest*")
-positive_filter.append("*/GPU_VecAddTest_*")
-
-positive_filter.append("*/GPU_KernelTuningNetTest*")
-positive_filter.append("*/GPU_MIOpenDriver*")
-
-positive_filter.append("*/GPU_Bwd_Mha_*")
-positive_filter.append("*/GPU_Fwd_Mha_*")
-positive_filter.append("*/GPU_Softmax*")
-positive_filter.append("*/GPU_Dropout*")
-positive_filter.append("*/GPU_MhaBackward_*")
-positive_filter.append("*/GPU_MhaForward_*")
-positive_filter.append("*GPU_TestMhaFind20*")
-
-#############################################
 
 negative_filter.append("*DeepBench*")
 negative_filter.append("*MIOpenTestConv*")
 
 # For sake of time saving on pre-commit step
 ####################################################
-negative_filter.append("Full/GPU_Reduce_FP64")  # 4 min 19 sec
-negative_filter.append("Full/GPU_BNOCLFWDTrainSerialRun3D_BFP16")  # 3 min 37 sec
-negative_filter.append("Full/GPU_Lrn_FP32")  # 2 min 50 sec
-negative_filter.append("Full/GPU_Lrn_FP16")  # 2 min 20 sec
-negative_filter.append("Full/GPU_BNOCLInferSerialRun3D_BFP16")  # 2 min 19 sec
-negative_filter.append("Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16")  # 1 min 55 sec
-negative_filter.append("Smoke/GPU_BNOCLInferLarge2D_BFP16")  # 1 min 48 sec
-negative_filter.append("Full/GPU_BNOCLBWDSerialRun3D_BFP16")  # 1 min 28 sec
-negative_filter.append("Smoke/GPU_BNOCLBWDLarge2D_BFP16")  # 1 min 19 sec
+negative_filter.append("Full/GPU_Reduce_FP64*")  # 4 min 19 sec
+negative_filter.append("Full/GPU_BNOCLFWDTrainSerialRun3D_BFP16*")  # 3 min 37 sec
+negative_filter.append("Full/GPU_Lrn_FP32*")  # 2 min 50 sec
+negative_filter.append("Full/GPU_Lrn_FP16*")  # 2 min 20 sec
+negative_filter.append("Full/GPU_BNOCLInferSerialRun3D_BFP16*")  # 2 min 19 sec
+negative_filter.append("Smoke/GPU_BNOCLFWDTrainLarge2D_BFP16*")  # 1 min 55 sec
+negative_filter.append("Smoke/GPU_BNOCLInferLarge2D_BFP16*")  # 1 min 48 sec
+negative_filter.append("Full/GPU_BNOCLBWDSerialRun3D_BFP16*")  # 1 min 28 sec
+negative_filter.append("Smoke/GPU_BNOCLBWDLarge2D_BFP16*")  # 1 min 19 sec
 
-negative_filter.append("Full/GPU_UnitTestActivationDescriptor_FP32")  # 1 min 23 sec
-negative_filter.append("Full/GPU_UnitTestActivationDescriptor_FP16")  # 1 min 0 sec
+negative_filter.append("Full/GPU_UnitTestActivationDescriptor_FP32*")  # 1 min 23 sec
+negative_filter.append("Full/GPU_UnitTestActivationDescriptor_FP16*")  # 1 min 0 sec
 
-negative_filter.append("Smoke/GPU_BNOCLBWDLargeFusedActivation2D_BFP16")  # 0 min 52 sec
-negative_filter.append("Smoke/GPU_BNOCLBWDLargeFusedActivation2D_FP16")  # 0 min 49 sec
+negative_filter.append(
+    "Smoke/GPU_BNOCLBWDLargeFusedActivation2D_BFP16*"
+)  # 0 min 52 sec
+negative_filter.append("Smoke/GPU_BNOCLBWDLargeFusedActivation2D_FP16*")  # 0 min 49 sec
 
-negative_filter.append("Full/GPU_ConvGrpBiasActivInfer_BFP16")  # 0 min 40 sec
-negative_filter.append("Full/GPU_ConvGrpBiasActivInfer_FP32")  # 0 min 38 sec
-negative_filter.append("Full/GPU_ConvGrpBiasActivInfer_FP16")  # 0 min 25 sec
+negative_filter.append("Full/GPU_ConvGrpBiasActivInfer_BFP16*")  # 0 min 40 sec
+negative_filter.append("Full/GPU_ConvGrpBiasActivInfer_FP32*")  # 0 min 38 sec
+negative_filter.append("Full/GPU_ConvGrpBiasActivInfer_FP16*")  # 0 min 25 sec
 
-negative_filter.append("Full/GPU_ConvGrpActivInfer_BFP16")  # 0 min 42 sec
-negative_filter.append("Full/GPU_ConvGrpActivInfer_FP32")  # 0 min 35 sec
-negative_filter.append("Full/GPU_ConvGrpActivInfer_FP16")  # 0 min 25 sec
+negative_filter.append("Full/GPU_ConvGrpActivInfer_BFP16*")  # 0 min 42 sec
+negative_filter.append("Full/GPU_ConvGrpActivInfer_FP32*")  # 0 min 35 sec
+negative_filter.append("Full/GPU_ConvGrpActivInfer_FP16*")  # 0 min 25 sec
 
-negative_filter.append("Full/GPU_ConvGrpBiasActivInfer3D_BFP16")  # 0 min 27 sec
-negative_filter.append("Full/GPU_ConvGrpBiasActivInfer3D_FP32")  # 0 min 25 sec
-negative_filter.append("Full/GPU_ConvGrpBiasActivInfer3D_FP16")  # 0 min 19 sec
+negative_filter.append("Full/GPU_ConvGrpBiasActivInfer3D_BFP16*")  # 0 min 27 sec
+negative_filter.append("Full/GPU_ConvGrpBiasActivInfer3D_FP32*")  # 0 min 25 sec
+negative_filter.append("Full/GPU_ConvGrpBiasActivInfer3D_FP16*")  # 0 min 19 sec
 
-negative_filter.append("Full/GPU_ConvGrpActivInfer3D_BFP16")  # 0 min 27 sec
-negative_filter.append("Full/GPU_ConvGrpActivInfer3D_FP32")  # 0 min 22 sec
-negative_filter.append("Full/GPU_ConvGrpActivInfer3D_FP16")  # 0 min 16 sec
+negative_filter.append("Full/GPU_ConvGrpActivInfer3D_BFP16*")  # 0 min 27 sec
+negative_filter.append("Full/GPU_ConvGrpActivInfer3D_FP32*")  # 0 min 22 sec
+negative_filter.append("Full/GPU_ConvGrpActivInfer3D_FP16*")  # 0 min 16 sec
 
 # Flaky tests
 negative_filter.append(
@@ -155,6 +76,54 @@ negative_filter.append(
 # TODO(rocm-libraries#2266): re-enable test for gfx950-dcgpu
 if AMDGPU_FAMILIES == "gfx950-dcgpu":
     negative_filter.append("*DBSync*")
+
+# Tests to be filtered for navi
+# 1- Ignore gfx942 tests
+# TODO: There is no FP32 wmma on Navi, remove all FP32 conv tests. These should already be skipped via applicability for
+# CK solvers
+if AMDGPU_FAMILIES in ["gfx110X-all", "gfx1150", "gfx1151", "gfx120X-all"]:
+    # These are ignored in miopen
+    negative_filter.append(
+        "Smoke/GPU_BNFWDTrainLargeFusedActivation2D_FP32.BnV2LargeFWD_TrainCKfp32Activation/NCHW_BNSpatial_testBNAPIV1_Dim_2_test_id_32"
+    )  # Temporarily disabled until gfx1151 CI nodes have fw 31 or higher installed
+    negative_filter.append(
+        "Smoke/GPU_BNFWDTrainLarge2D_FP32.BnV2LargeFWD_TrainCKfp32/NCHW_BNSpatial_testBNAPIV2_Dim_2_test_id_64"
+    )  # Temporarily disabled until gfx1151 CI nodes have fw 31 or higher installed
+    # this could address 2
+    negative_filter.append(
+        "*SerialRun3D*"
+    )  # These FP32 SerialRun3D tests use so much memory that they have a risk of timing out the machine during tests
+    # this could address 1
+    negative_filter.append("*gfx942*")
+    # List of currently failing tests
+    negative_filter.append("*GPU_UnitTestConvSolverFFTFwd_FP32*")
+    negative_filter.append("*GPU_UnitTestConvSolverFFTBwd_FP32*")
+    negative_filter.append("*GPU_TernaryTensorOps_FP64*")
+    negative_filter.append("*GPU_TernaryTensorOps_FP16*")
+    negative_filter.append("*GPU_TernaryTensorOps_FP32*")
+    negative_filter.append("*GPU_Op4dTensorGenericTest_FP32*")
+    negative_filter.append("*GPU_UnitTestActivationDescriptor_FP16*")
+    negative_filter.append("*GPU_UnitTestActivationDescriptor_FP32*")
+    negative_filter.append("*CPU_TuningPolicy_NONE*")
+    negative_filter.append("*GPU_Dropout_FP32*")
+    negative_filter.append("*GPU_Dropout_FP16*")
+
+    # TODO: We need to work to re-enable these
+    negative_filter.append(
+        "*GPU_GroupConv3D_BackwardData_FP16.GroupConv3D_BackwardData_half_Test*"
+    )
+    negative_filter.append(
+        "*GPU_GroupConv3D_BackwardData_BFP16.GroupConv3D_BackwardData_bfloat16_Test*"
+    )
+    negative_filter.append(
+        "*GPU_UnitTestConvSolverImplicitGemmGroupWrwXdlops_BFP16.ConvHipImplicitGemmGroupWrwXdlops*"
+    )
+
+    negative_filter.append("Smoke/GPU_MultiMarginLoss*")
+
+    negative_filter.append(
+        "*CPU_UnitTestConvSolverImplicitGemmGroupWrwXdlopsDevApplicability_FP16.ConvHipImplicitGemmGroupWrwXdlops*"
+    )
 
 ####################################################
 
@@ -175,7 +144,6 @@ smoke_filter = [
 # TODO(rocm-libraries#2266): re-enable test for gfx950-dcgpu
 if AMDGPU_FAMILIES != "gfx950-dcgpu":
     smoke_filter.append("*DBSync*")
-    positive_filter.append("*DBSync*")
 
 ####################################################
 
@@ -185,9 +153,7 @@ test_type = os.getenv("TEST_TYPE", "full")
 if test_type == "smoke":
     test_filter = "--gtest_filter=" + ":".join(smoke_filter)
 else:
-    test_filter = (
-        "--gtest_filter=" + ":".join(positive_filter) + "-" + ":".join(negative_filter)
-    )
+    test_filter = "--gtest_filter=" + ":*" + "-" + ":".join(negative_filter)
 #############################################
 
 cmd = [f"{THEROCK_BIN_DIR}/miopen_gtest", test_filter]

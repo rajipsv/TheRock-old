@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - 'users/rajipsv/x86_poc'      # Only rponnuru's strix_poc branch
+      - 'main'
     paths:
       - 'tests/strix_ai/**'     # Strix AI tests
       - '.github/workflows/strix_ai*.yml'  # This workflow
@@ -585,4 +586,3 @@ jobs:
           AMDGPU_FAMILIES: ${{ github.event.inputs.strix_variant || 'gfx1151' }}
         run: |
           python3 -m pytest tests/strix_ai/${{ matrix.category }}/ -v
-
